@@ -29,8 +29,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         // Validate username
         $usernameValidation = validateUsername($username);
-        if (!$usernameValidation['valid']) {
-            $error_msg = $usernameValidation['message'];
+        if (!$usernameValidation->isValid()) {
+            $error_msg = $usernameValidation->getErrorMessage();
         }
         // Validate email
         elseif (!validateEmail($email)) {
@@ -39,8 +39,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Validate password
         else {
             $passwordValidation = validatePassword($password);
-            if (!$passwordValidation['valid']) {
-                $error_msg = $passwordValidation['message'];
+            if (!$passwordValidation->isValid()) {
+                $error_msg = $passwordValidation->getErrorMessage();
             } else {
                 // Check for existing user
                 $stmt = $conn->prepare("SELECT id FROM users WHERE username = ? OR email = ?");

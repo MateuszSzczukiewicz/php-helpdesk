@@ -35,14 +35,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error_msg = "Please fill in all fields.";
     } else {
         $titleValidation = validateTicketTitle($title);
-        if (!$titleValidation['valid']) {
-            $error_msg = $titleValidation['message'];
+        if (!$titleValidation->isValid()) {
+            $error_msg = $titleValidation->getErrorMessage();
         }
         // Validate description
         else {
             $descValidation = validateTicketDescription($description);
-            if (!$descValidation['valid']) {
-                $error_msg = $descValidation['message'];
+            if (!$descValidation->isValid()) {
+                $error_msg = $descValidation->getErrorMessage();
             } else {
                 $sql = "INSERT INTO tickets (user_id, category_id, title, description, status) 
                         VALUES (?, ?, ?, ?, 'new')";

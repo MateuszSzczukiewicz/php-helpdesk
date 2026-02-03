@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 require_once __DIR__ . '/functions.php';
 
-function requireAuth() {
+function requireAuth(): array
+{
     if (session_status() === PHP_SESSION_NONE) {
         session_start();
     }
@@ -14,7 +17,8 @@ function requireAuth() {
     return getCurrentUser();
 }
 
-function requireAdmin() {
+function requireAdmin(): array
+{
     $user = requireAuth();
     
     if (!isAdmin()) {
@@ -26,13 +30,15 @@ function requireAdmin() {
     return $user;
 }
 
-function ensureSession() {
+function ensureSession(): void
+{
     if (session_status() === PHP_SESSION_NONE) {
         session_start();
     }
 }
 
-function loginUser($user) {
+function loginUser(array $user): void
+{
     if (session_status() === PHP_SESSION_NONE) {
         session_start();
     }
@@ -45,7 +51,8 @@ function loginUser($user) {
     $_SESSION['last_activity'] = time();
 }
 
-function logoutUser() {
+function logoutUser(): void
+{
     if (session_status() === PHP_SESSION_NONE) {
         session_start();
     }
@@ -54,9 +61,14 @@ function logoutUser() {
     
     if (ini_get("session.use_cookies")) {
         $params = session_get_cookie_params();
-        setcookie(session_name(), '', time() - 42000,
-            $params["path"], $params["domain"],
-            $params["secure"], $params["httponly"]
+        setcookie(
+            name: session_name(),
+            value: '',
+            expires_or_options: time() - 42000,
+            path: $params["path"],
+            domain: $params["domain"],
+            secure: $params["secure"],
+            httponly: $params["httponly"]
         );
     }
     

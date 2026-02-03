@@ -1,6 +1,9 @@
 <?php
 
-function showError($message, $code = 500) {
+declare(strict_types=1);
+
+function showError(string $message, int $code = 500): never
+{
     http_response_code($code);
     
     if (function_exists('logError')) {
@@ -62,15 +65,18 @@ function showError($message, $code = 500) {
     exit();
 }
 
-function show404($resource = "Page") {
+function show404(string $resource = "Page"): never
+{
     showError("$resource not found", 404);
 }
 
-function show403($message = "You don't have permission to access this resource") {
+function show403(string $message = "You don't have permission to access this resource"): never
+{
     showError($message, 403);
 }
 
-function showDatabaseError($e) {
+function showDatabaseError(\PDOException $e): never
+{
     if (function_exists('logDatabaseError')) {
         logDatabaseError("Database operation failed", $e->getMessage());
     }

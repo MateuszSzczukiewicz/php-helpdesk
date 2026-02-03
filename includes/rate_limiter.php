@@ -1,10 +1,18 @@
 <?php
 
-function getRateLimitKey($identifier, $action) {
+declare(strict_types=1);
+
+function getRateLimitKey(string $identifier, string $action): string
+{
     return "rate_limit_{$action}_" . md5($identifier);
 }
 
-function checkRateLimit($identifier, $action, $maxAttempts = 5, $timeWindow = 900) {
+function checkRateLimit(
+    string $identifier,
+    string $action,
+    int $maxAttempts = 5,
+    int $timeWindow = 900
+): array {
     $key = getRateLimitKey($identifier, $action);
     $logFile = __DIR__ . '/../logs/rate_limit.log';
     $attempts = [];
@@ -16,9 +24,10 @@ function checkRateLimit($identifier, $action, $maxAttempts = 5, $timeWindow = 90
     }
     
     $currentTime = time();
-    $attempts = array_filter($attempts, function($timestamp) use ($currentTime, $timeWindow) {
-        return ($currentTime - $timestamp) < $timeWindow;
-    });
+    $attempts = array_filter(
+        $attempts,
+        fn(int $timestamp): bool => ($currentTime - $timestamp) < $timeWindow
+    );
     
     if (count($attempts) >= $maxAttempts) {
         $oldestAttempt = min($attempts);
@@ -37,7 +46,8 @@ function checkRateLimit($identifier, $action, $maxAttempts = 5, $timeWindow = 90
     ];
 }
 
-function recordRateLimitAttempt($identifier, $action) {
+function recordRateLimitAttempt(string $identifier, string $action): void
+{
     $key = getRateLimitKey($identifier, $action);
     $logFile = __DIR__ . '/../logs/rate_limit.log';
     
@@ -53,10 +63,14 @@ function recordRateLimitAttempt($identifier, $action) {
     
     $allAttempts[$key][] = time();
     
-    file_put_contents($logFile, json_encode($allAttempts));
+    file_put_contents(
+        $logFile,
+        json_encode($allAttempts, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+    );
 }
 
-function clearRateLimit($identifier, $action) {
+function clearRateLimit(string $identifier, string $action): void
+{
     $key = getRateLimitKey($identifier, $action);
     $logFile = __DIR__ . '/../logs/rate_limit.log';
     
@@ -66,7 +80,10 @@ function clearRateLimit($identifier, $action) {
         
         if (isset($allAttempts[$key])) {
             unset($allAttempts[$key]);
-            file_put_contents($logFile, json_encode($allAttempts));
+            file_put_contents(
+                $logFile,
+                json_encode($allAttempts, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+            );
         }
     }
 }

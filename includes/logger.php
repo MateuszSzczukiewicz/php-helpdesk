@@ -1,63 +1,87 @@
 <?php
 
-function getClientIP() {
-    $ip = 'unknown';
+declare(strict_types=1);
+
+function getClientIP(): string
+{
+    $ip = match (true) {
+        !empty($_SERVER['HTTP_CF_CONNECTING_IP']) => $_SERVER['HTTP_CF_CONNECTING_IP'],
+        !empty($_SERVER['HTTP_CLIENT_IP']) => $_SERVER['HTTP_CLIENT_IP'],
+        !empty($_SERVER['HTTP_X_FORWARDED_FOR']) => explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0],
+        !empty($_SERVER['REMOTE_ADDR']) => $_SERVER['REMOTE_ADDR'],
+        default => 'unknown'
+    };
     
-    if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
-        $ip = $_SERVER['HTTP_CLIENT_IP'];
-    } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-        $ip = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0];
-    } elseif (!empty($_SERVER['REMOTE_ADDR'])) {
-        $ip = $_SERVER['REMOTE_ADDR'];
-    }
-    
-    return filter_var($ip, FILTER_VALIDATE_IP) ? $ip : 'unknown';
+    return $ip
+        |> trim(...)
+        |> (fn($trimmed) => filter_var($trimmed, FILTER_VALIDATE_IP) ? $trimmed : 'unknown');
 }
 
-function getUserAgent() {
+function getUserAgent(): string
+{
     return $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
 }
 
-function logError($message, $context = []) {
+function formatLogContext(array $context): string
+{
+    return $context
+        |> (fn($ctx) => json_encode($ctx, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES))
+        |> (fn($json) => empty($context) ? '' : " | Context: $json");
+}
+
+function logError(string $message, array $context = []): void
+{
     $log_file = __DIR__ . '/../logs/error.log';
     $timestamp = date('Y-m-d H:i:s');
-    $ip = getClientIP();
-    $context['ip'] = $ip;
+    
+    $context['ip'] = getClientIP();
     $context['user_agent'] = getUserAgent();
-    $context_str = !empty($context) ? ' | Context: ' . json_encode($context) : '';
-    $log_entry = "[$timestamp] ERROR: $message$context_str" . PHP_EOL;
+    
+    $log_entry = $context
+        |> formatLogContext(...)
+        |> (fn($ctx) => "[$timestamp] ERROR: $message$ctx" . PHP_EOL);
     
     error_log($log_entry, 3, $log_file);
 }
 
-function logSecurity($event, $context = []) {
+function logSecurity(string $event, array $context = []): void
+{
     $log_file = __DIR__ . '/../logs/security.log';
     $timestamp = date('Y-m-d H:i:s');
     $ip = getClientIP();
     $user = $_SESSION['username'] ?? 'anonymous';
-    $user_agent = getUserAgent();
-    $context['user_agent'] = $user_agent;
-    $context_str = !empty($context) ? ' | ' . json_encode($context) : '';
-    $log_entry = "[$timestamp] SECURITY: $event | User: $user | IP: $ip$context_str" . PHP_EOL;
+    
+    $context['user_agent'] = getUserAgent();
+    
+    $log_entry = $context
+        |> (fn($ctx) => json_encode($ctx, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES))
+        |> (fn($ctx_str) => !empty($context) ? " | $ctx_str" : '')
+        |> (fn($ctx_str) => "[$timestamp] SECURITY: $event | User: $user | IP: $ip$ctx_str" . PHP_EOL);
     
     error_log($log_entry, 3, $log_file);
 }
 
-function logInfo($message, $context = []) {
+function logInfo(string $message, array $context = []): void
+{
     $log_file = __DIR__ . '/../logs/app.log';
     $timestamp = date('Y-m-d H:i:s');
-    $context_str = !empty($context) ? ' | ' . json_encode($context) : '';
-    $log_entry = "[$timestamp] INFO: $message$context_str" . PHP_EOL;
+    
+    $log_entry = $context
+        |> (fn($ctx) => json_encode($ctx, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES))
+        |> (fn($ctx_str) => !empty($context) ? " | $ctx_str" : '')
+        |> (fn($ctx_str) => "[$timestamp] INFO: $message$ctx_str" . PHP_EOL);
     
     error_log($log_entry, 3, $log_file);
 }
 
-function logLogin($username, $success) {
+function logLogin(string $username, bool $success): void
+{
     $status = $success ? 'SUCCESS' : 'FAILED';
-    $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+    $ip = getClientIP();
     logSecurity("Login $status for user: $username from IP: $ip");
 }
 
-function logDatabaseError($query, $error) {
+function logDatabaseError(string $query, string $error): void
+{
     logError("Database error: $error", ['query' => $query]);
 }

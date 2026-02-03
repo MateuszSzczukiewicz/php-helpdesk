@@ -1,6 +1,9 @@
 <?php
 
-function generateCSRFToken() {
+declare(strict_types=1);
+
+function generateCSRFToken(): string
+{
     if (session_status() === PHP_SESSION_NONE) {
         session_start();
     }
@@ -12,7 +15,8 @@ function generateCSRFToken() {
     return $_SESSION['csrf_token'];
 }
 
-function validateCSRFToken($token) {
+function validateCSRFToken(string $token): bool
+{
     if (session_status() === PHP_SESSION_NONE) {
         session_start();
     }
@@ -24,12 +28,14 @@ function validateCSRFToken($token) {
     return hash_equals($_SESSION['csrf_token'], $token);
 }
 
-function csrfField() {
+function csrfField(): void
+{
     $token = generateCSRFToken();
     echo '<input type="hidden" name="csrf_token" value="' . htmlspecialchars($token) . '">';
 }
 
-function requireCSRFToken() {
+function requireCSRFToken(): void
+{
     $token = $_POST['csrf_token'] ?? '';
     
     if (!validateCSRFToken($token)) {

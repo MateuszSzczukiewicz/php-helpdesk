@@ -15,34 +15,28 @@ $error_msg = "";
 $success_msg = "";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Validate CSRF token
     requireCSRFToken();
     
     $username = trim($_POST['username']);
     $email = trim($_POST['email']);
     $password = $_POST['password'];
 
-    // Validate inputs
     if (empty($username) || empty($email) || empty($password)) {
         $error_msg = "Please fill in all fields!";
         logSecurity("Registration attempt with empty fields");
     } else {
-        // Validate username
         $usernameValidation = validateUsername($username);
         if (!$usernameValidation->isValid()) {
             $error_msg = $usernameValidation->getErrorMessage();
         }
-        // Validate email
         elseif (!validateEmail($email)) {
             $error_msg = "Please enter a valid email address.";
         }
-        // Validate password
         else {
             $passwordValidation = validatePassword($password);
             if (!$passwordValidation->isValid()) {
                 $error_msg = $passwordValidation->getErrorMessage();
             } else {
-                // Check for existing user
                 $stmt = $conn->prepare("SELECT id FROM users WHERE username = ? OR email = ?");
                 $stmt->execute([$username, $email]);
 
@@ -50,7 +44,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $error_msg = "This username or email is already taken.";
                     logSecurity("Registration attempt with duplicate username/email", ['username' => $username]);
                 } else {
-                    // Create user
                     $password_hash = password_hash($password, PASSWORD_DEFAULT);
                     $sql = "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, 'user')";
                     $stmt = $conn->prepare($sql);

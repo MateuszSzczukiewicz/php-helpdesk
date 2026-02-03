@@ -1,39 +1,34 @@
 <?php
-session_start();
 require 'db.php';
+require 'includes/auth.php';
+require 'includes/functions.php';
 require 'includes/csrf.php';
 require 'includes/logger.php';
+require 'includes/error_handler.php';
 
-if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
-    exit();
-}
+$user = requireAuth();
 
 if (!isset($_GET['id'])) {
-    die("Error: Ticket ID is missing.");
+    show404("Ticket");
 }
 
 $ticket_id = (int)$_GET['id'];
-$current_user_id = $_SESSION['user_id'];
-$current_role = $_SESSION['role'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'cancel') {
-    // Validate CSRF token
     requireCSRFToken();
     
     $updateStmt = $conn->prepare("UPDATE tickets SET status = 'cancelled' WHERE id = ? AND user_id = ?");
     try {
-        $updateStmt->execute([$ticket_id, $current_user_id]);
+        $updateStmt->execute([$ticket_id, $user['id']]);
         logInfo("Ticket cancelled by user", [
             'ticket_id' => $ticket_id,
-            'user_id' => $current_user_id
+            'user_id' => $user['id']
         ]);
     } catch (PDOException $e) {
         logDatabaseError("Cancel ticket", $e->getMessage());
     }
 
-    header("Location: view_ticket.php?id=" . $ticket_id);
-    exit();
+    redirect("view_ticket.php?id=" . $ticket_id);
 }
 
 $sql = "SELECT t.*, c.name as category_name, u.username 
@@ -47,27 +42,11 @@ $stmt->execute([$ticket_id]);
 $ticket = $stmt->fetch();
 
 if (!$ticket) {
-    die("Error: Ticket not found.");
+    show404("Ticket");
 }
 
-if ($ticket['user_id'] != $current_user_id && $current_role !== 'admin') {
-    die("Access Denied: You do not have permission to view this ticket.");
-}
-
-function getStatusLabel($status)
-{
-    switch ($status) {
-        case 'new':
-            return '<span class="status-new">New</span>';
-        case 'in_progress':
-            return '<span class="status-in_progress">In Progress</span>';
-        case 'resolved':
-            return '<span class="status-resolved">Resolved</span>';
-        case 'cancelled':
-            return '<span style="color:gray">Cancelled</span>';
-        default:
-            return $status;
-    }
+if ($ticket['user_id'] != $user['id'] && !isAdmin()) {
+    show403("You do not have permission to view this ticket");
 }
 ?>
 
@@ -87,7 +66,7 @@ function getStatusLabel($status)
         <div><strong>IT Helpdesk</strong></div>
         <div>
             <a href="index.php" style="color: white; margin-right: 15px;">&larr; Back to Dashboard</a>
-            Logged in as: <strong><?php echo htmlspecialchars($_SESSION['username']); ?></strong>
+            Logged in as: <strong><?php echo htmlspecialchars($user['username']); ?></strong>
         </div>
     </nav>
 
@@ -122,7 +101,7 @@ function getStatusLabel($status)
             <p style="white-space: pre-wrap; margin-top: 10px;"><?php echo htmlspecialchars($ticket['description']); ?></p>
         </div>
 
-        <?php if ($ticket['user_id'] == $current_user_id && $ticket['status'] == 'new'): ?>
+        <?php if ($ticket['user_id'] == $user['id'] && $ticket['status'] == 'new'): ?>
             <div style="margin-top: 30px; text-align: right;">
                 <form action="view_ticket.php?id=<?php echo $ticket['id']; ?>" method="POST" onsubmit="return confirm('Are you sure you want to cancel this ticket?');">
                     <?php csrfField(); ?>

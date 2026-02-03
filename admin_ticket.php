@@ -1,29 +1,40 @@
 <?php
-session_start();
 require 'db.php';
+require 'includes/auth.php';
+require 'includes/functions.php';
+require 'includes/csrf.php';
+require 'includes/logger.php';
+require 'includes/error_handler.php';
 
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    die("Access Denied: You do not have permission to perform this action.");
-}
+$user = requireAdmin();
 
 if (!isset($_GET['id'])) {
-    die("Error: Ticket ID is missing.");
+    show404("Ticket");
 }
 
 $ticket_id = (int)$_GET['id'];
 $msg = "";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    requireCSRFToken();
+    
     $new_status = $_POST['status'];
-
     $allowed_statuses = ['new', 'in_progress', 'resolved', 'cancelled'];
 
     if (in_array($new_status, $allowed_statuses)) {
         $stmt = $conn->prepare("UPDATE tickets SET status = ? WHERE id = ?");
-        if ($stmt->execute([$new_status, $ticket_id])) {
-            $msg = "<div class='success'>Status updated successfully!</div>";
-        } else {
+        try {
+            if ($stmt->execute([$new_status, $ticket_id])) {
+                $msg = "<div class='success'>Status updated successfully!</div>";
+                logInfo("Ticket status updated", [
+                    'ticket_id' => $ticket_id,
+                    'new_status' => $new_status,
+                    'admin' => $user['username']
+                ]);
+            }
+        } catch (PDOException $e) {
             $msg = "<div class='error'>Database error.</div>";
+            logDatabaseError("UPDATE ticket status", $e->getMessage());
         }
     }
 }
@@ -39,7 +50,7 @@ $stmt->execute([$ticket_id]);
 $ticket = $stmt->fetch();
 
 if (!$ticket) {
-    die("Ticket not found.");
+    show404("Ticket");
 }
 ?>
 
@@ -58,7 +69,7 @@ if (!$ticket) {
         <div><strong>ADMIN PANEL</strong></div>
         <div>
             <a href="admin_panel.php" style="color: white; margin-right: 15px;">&larr; Back to List</a>
-            Logged in as: <strong><?php echo htmlspecialchars($_SESSION['username']); ?></strong>
+            Logged in as: <strong><?php echo htmlspecialchars($user['username']); ?></strong>
         </div>
     </nav>
 
@@ -69,6 +80,7 @@ if (!$ticket) {
 
         <div style="background-color: #e9ecef; padding: 20px; border-radius: 8px; margin-bottom: 30px; border: 1px solid #dee2e6;">
             <form method="POST" style="display: flex; align-items: center; gap: 15px; margin: 0;">
+                <?php csrfField(); ?>
                 <label style="margin: 0; font-weight: bold;">Change Status:</label>
 
                 <select name="status" style="margin: 0; width: auto; flex-grow: 1;">

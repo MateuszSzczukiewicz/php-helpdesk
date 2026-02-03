@@ -1,15 +1,9 @@
 <?php
-session_start();
 require 'db.php';
+require 'includes/auth.php';
+require 'includes/functions.php';
 
-if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
-    exit();
-}
-
-$user_id = $_SESSION['user_id'];
-$username = $_SESSION['username'];
-$role = $_SESSION['role'];
+$user = requireAuth();
 
 $sql = "SELECT t.*, c.name as category_name 
         FROM tickets t 
@@ -18,24 +12,8 @@ $sql = "SELECT t.*, c.name as category_name
         ORDER BY t.created_at DESC";
 
 $stmt = $conn->prepare($sql);
-$stmt->execute([$user_id]);
+$stmt->execute([$user['id']]);
 $tickets = $stmt->fetchAll();
-
-function getStatusLabel($status)
-{
-    switch ($status) {
-        case 'new':
-            return '<span class="status-new">New</span>';
-        case 'in_progress':
-            return '<span class="status-in_progress">In Progress</span>';
-        case 'resolved':
-            return '<span class="status-resolved">Resolved</span>';
-        case 'cancelled':
-            return '<span style="color:gray">Cancelled</span>';
-        default:
-            return $status;
-    }
-}
 ?>
 
 <!DOCTYPE html>
@@ -55,8 +33,8 @@ function getStatusLabel($status)
             <strong>IT Helpdesk</strong>
         </div>
         <div>
-            Logged in as: <strong><?php echo htmlspecialchars($username); ?></strong>
-            <span style="font-size:0.8em; opacity:0.8;">(<?php echo strtoupper($role); ?>)</span>
+            Logged in as: <strong><?php echo htmlspecialchars($user['username']); ?></strong>
+            <span style="font-size:0.8em; opacity:0.8;">(<?php echo strtoupper($user['role']); ?>)</span>
             |
             <a href="logout.php" style="color: #ff6b6b;">Logout</a>
         </div>
@@ -89,7 +67,7 @@ function getStatusLabel($status)
                             <td><?php echo htmlspecialchars($ticket['title']); ?></td>
                             <td><?php echo htmlspecialchars($ticket['category_name']); ?></td>
                             <td><?php echo getStatusLabel($ticket['status']); ?></td>
-                            <td><?php echo date("Y-m-d H:i", strtotime($ticket['created_at'])); ?></td>
+                            <td><?php echo formatDate($ticket['created_at']); ?></td>
                             <td>
                                 <a href="view_ticket.php?id=<?php echo $ticket['id']; ?>" style="color: #007bff; text-decoration: none;">View Details</a>
                             </td>
@@ -103,7 +81,7 @@ function getStatusLabel($status)
             </div>
         <?php endif; ?>
 
-        <?php if ($role === 'admin'): ?>
+        <?php if (isAdmin()): ?>
             <hr style="margin-top: 40px; border: 0; border-top: 1px solid #ddd;">
             <div style="text-align: center; margin-top: 20px;">
                 <h3>Admin Panel</h3>

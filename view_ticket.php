@@ -5,6 +5,11 @@ require 'includes/functions.php';
 require 'includes/csrf.php';
 require 'includes/logger.php';
 require 'includes/error_handler.php';
+require 'includes/security_headers.php';
+require 'includes/session_manager.php';
+
+setSecurityHeaders();
+initSecureSession();
 
 $user = requireAuth();
 

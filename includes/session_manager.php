@@ -1,12 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 define('SESSION_TIMEOUT', 1800);
 
-function initSecureSession() {
+function initSecureSession(): void
+{
     if (session_status() === PHP_SESSION_NONE) {
-        ini_set('session.cookie_httponly', 1);
-        ini_set('session.use_only_cookies', 1);
-        ini_set('session.cookie_secure', isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 1 : 0);
+        ini_set('session.cookie_httponly', '1');
+        ini_set('session.use_only_cookies', '1');
+        ini_set('session.cookie_secure', (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? '1' : '0');
         ini_set('session.cookie_samesite', 'Strict');
         
         session_start();
@@ -40,7 +43,8 @@ function initSecureSession() {
     $_SESSION['last_activity'] = time();
 }
 
-function getSessionTimeRemaining() {
+function getSessionTimeRemaining(): int
+{
     if (!isset($_SESSION['last_activity'])) {
         return SESSION_TIMEOUT;
     }
@@ -51,6 +55,7 @@ function getSessionTimeRemaining() {
     return max(0, $remaining);
 }
 
-function refreshSession() {
+function refreshSession(): void
+{
     $_SESSION['last_activity'] = time();
 }

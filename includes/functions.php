@@ -1,53 +1,60 @@
 <?php
 
-function getStatusLabel($status) {
-    switch ($status) {
-        case 'new':
-            return '<span class="status-new">New</span>';
-        case 'in_progress':
-            return '<span class="status-in_progress">In Progress</span>';
-        case 'resolved':
-            return '<span class="status-resolved">Resolved</span>';
-        case 'cancelled':
-            return '<span style="color:gray">Cancelled</span>';
-        default:
-            return htmlspecialchars($status);
-    }
+declare(strict_types=1);
+
+require_once __DIR__ . '/TicketStatus.php';
+require_once __DIR__ . '/UserRole.php';
+
+function getStatusLabel(string|TicketStatus $status): string
+{
+    return match (true) {
+        $status instanceof TicketStatus => $status->getLabel(),
+        default => $status 
+            |> TicketStatus::tryFromString(...)
+            |> (fn($s) => $s?->getLabel() ?? htmlspecialchars($status))
+    };
 }
 
-function getStatusBadgeColor($status) {
-    switch ($status) {
-        case 'new':
-            return '#007bff';
-        case 'in_progress':
-            return '#ffc107';
-        case 'resolved':
-            return '#28a745';
-        case 'cancelled':
-            return '#6c757d';
-        default:
-            return '#333';
-    }
+function getStatusBadgeColor(string|TicketStatus $status): string
+{
+    return match (true) {
+        $status instanceof TicketStatus => $status->getColor(),
+        default => $status
+            |> TicketStatus::tryFromString(...)
+            |> (fn($s) => $s?->getColor() ?? '#333')
+    };
 }
 
-function formatDate($datetime) {
-    return date("Y-m-d H:i", strtotime($datetime));
+function formatDate(string $datetime): string
+{
+    return $datetime
+        |> strtotime(...)
+        |> (fn($timestamp) => date("Y-m-d H:i", $timestamp));
 }
 
-function redirect($url) {
+function redirect(string $url): never
+{
     header("Location: $url");
     exit();
 }
 
-function isLoggedIn() {
+function isLoggedIn(): bool
+{
     return isset($_SESSION['user_id']);
 }
 
-function isAdmin() {
-    return isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
+function isAdmin(): bool
+{
+    return match (true) {
+        !isset($_SESSION['role']) => false,
+        default => $_SESSION['role']
+            |> UserRole::tryFromString(...)
+            |> (fn($role) => $role?->isAdmin() ?? false)
+    };
 }
 
-function getCurrentUser() {
+function getCurrentUser(): ?array
+{
     if (!isLoggedIn()) {
         return null;
     }

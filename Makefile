@@ -122,3 +122,15 @@ deploy-check: check test ## Pre-deployment check
 	@echo "5. Configure .env on server"
 
 dev: setup serve ## Quick start for developers
+
+test-syntax: ## Run PHP syntax tests
+	@php tests/syntax_test.php
+
+test-strict: ## Run strict types coverage test
+	@php tests/strict_types_test.php
+
+test-security: ## Run security features test
+	@php tests/security_test.php
+
+test-all: test-syntax test-strict test-security ## Run all tests
+	@echo "\nAll tests passed successfully!"

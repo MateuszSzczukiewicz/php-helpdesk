@@ -3,7 +3,6 @@
 declare(strict_types=1);
 require 'db.php';
 require 'includes/auth.php';
-require 'includes/functions.php';
 require 'includes/csrf.php';
 require 'includes/validation.php';
 require 'includes/logger.php';

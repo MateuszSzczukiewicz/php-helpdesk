@@ -2,3 +2,8 @@
 .vscode/
 *.log
 .env
+logs/
+vendor/
+composer.lock
+.php-cs-fixer.cache
+.phpunit.cache

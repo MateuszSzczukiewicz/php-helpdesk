@@ -1,6 +1,8 @@
 <?php
 session_start();
 require 'db.php';
+require 'includes/csrf.php';
+require 'includes/logger.php';
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
@@ -16,8 +18,19 @@ $current_user_id = $_SESSION['user_id'];
 $current_role = $_SESSION['role'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'cancel') {
+    // Validate CSRF token
+    requireCSRFToken();
+    
     $updateStmt = $conn->prepare("UPDATE tickets SET status = 'cancelled' WHERE id = ? AND user_id = ?");
-    $updateStmt->execute([$ticket_id, $current_user_id]);
+    try {
+        $updateStmt->execute([$ticket_id, $current_user_id]);
+        logInfo("Ticket cancelled by user", [
+            'ticket_id' => $ticket_id,
+            'user_id' => $current_user_id
+        ]);
+    } catch (PDOException $e) {
+        logDatabaseError("Cancel ticket", $e->getMessage());
+    }
 
     header("Location: view_ticket.php?id=" . $ticket_id);
     exit();
@@ -112,6 +125,7 @@ function getStatusLabel($status)
         <?php if ($ticket['user_id'] == $current_user_id && $ticket['status'] == 'new'): ?>
             <div style="margin-top: 30px; text-align: right;">
                 <form action="view_ticket.php?id=<?php echo $ticket['id']; ?>" method="POST" onsubmit="return confirm('Are you sure you want to cancel this ticket?');">
+                    <?php csrfField(); ?>
                     <input type="hidden" name="action" value="cancel">
                     <button type="submit" style="background-color: #dc3545;">Cancel Ticket</button>
                 </form>

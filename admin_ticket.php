@@ -1,8 +1,11 @@
 <?php
 session_start();
 require 'db.php';
+require 'includes/csrf.php';
+require 'includes/logger.php';
 
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
+    logSecurity("Unauthorized admin access attempt", ['user_id' => $_SESSION['user_id'] ?? 'none']);
     die("Access Denied: You do not have permission to perform this action.");
 }
 
@@ -14,16 +17,26 @@ $ticket_id = (int)$_GET['id'];
 $msg = "";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Validate CSRF token
+    requireCSRFToken();
+    
     $new_status = $_POST['status'];
-
     $allowed_statuses = ['new', 'in_progress', 'resolved', 'cancelled'];
 
     if (in_array($new_status, $allowed_statuses)) {
         $stmt = $conn->prepare("UPDATE tickets SET status = ? WHERE id = ?");
-        if ($stmt->execute([$new_status, $ticket_id])) {
-            $msg = "<div class='success'>Status updated successfully!</div>";
-        } else {
+        try {
+            if ($stmt->execute([$new_status, $ticket_id])) {
+                $msg = "<div class='success'>Status updated successfully!</div>";
+                logInfo("Ticket status updated", [
+                    'ticket_id' => $ticket_id,
+                    'new_status' => $new_status,
+                    'admin' => $_SESSION['username']
+                ]);
+            }
+        } catch (PDOException $e) {
             $msg = "<div class='error'>Database error.</div>";
+            logDatabaseError("UPDATE ticket status", $e->getMessage());
         }
     }
 }
@@ -69,6 +82,7 @@ if (!$ticket) {
 
         <div style="background-color: #e9ecef; padding: 20px; border-radius: 8px; margin-bottom: 30px; border: 1px solid #dee2e6;">
             <form method="POST" style="display: flex; align-items: center; gap: 15px; margin: 0;">
+                <?php csrfField(); ?>
                 <label style="margin: 0; font-weight: bold;">Change Status:</label>
 
                 <select name="status" style="margin: 0; width: auto; flex-grow: 1;">

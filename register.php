@@ -5,8 +5,11 @@ require 'includes/functions.php';
 require 'includes/csrf.php';
 require 'includes/validation.php';
 require 'includes/logger.php';
+require 'includes/security_headers.php';
+require 'includes/session_manager.php';
 
-ensureSession();
+setSecurityHeaders();
+initSecureSession();
 
 $error_msg = "";
 $success_msg = "";

@@ -4,11 +4,19 @@ require 'includes/auth.php';
 require 'includes/functions.php';
 require 'includes/csrf.php';
 require 'includes/logger.php';
+require 'includes/rate_limiter.php';
+require 'includes/security_headers.php';
+require 'includes/session_manager.php';
 
-ensureSession();
+setSecurityHeaders();
+initSecureSession();
 
 $error_msg = "";
 $success_msg = "";
+
+if (isset($_GET['timeout']) && $_GET['timeout'] == 1) {
+    $error_msg = "Your session has expired due to inactivity. Please login again.";
+}
 
 if (isset($_GET['registered']) && $_GET['registered'] == 1) {
     $success_msg = "Account created successfully! Please login.";
@@ -19,22 +27,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     $username = trim($_POST['username']);
     $password = $_POST['password'];
+    $clientIP = getClientIP();
 
-    if (empty($username) || empty($password)) {
+    $rateCheck = checkRateLimit($clientIP, 'login', 5, 900);
+    
+    if (!$rateCheck['allowed']) {
+        $minutes = ceil($rateCheck['retry_after'] / 60);
+        $error_msg = "Too many login attempts. Please try again in {$minutes} minutes.";
+        logSecurity("Rate limit exceeded for login", ['ip' => $clientIP]);
+    } elseif (empty($username) || empty($password)) {
         $error_msg = "Please fill in all fields.";
         logSecurity("Login attempt with empty fields");
     } else {
+        recordRateLimitAttempt($clientIP, 'login');
+        
         $stmt = $conn->prepare("SELECT id, username, password, role FROM users WHERE username = ?");
         $stmt->execute([$username]);
         $user = $stmt->fetch();
 
         if ($user && password_verify($password, $user['password'])) {
+            clearRateLimit($clientIP, 'login');
             loginUser($user);
             logLogin($username, true);
             redirect('index.php');
         } else {
             $error_msg = "Invalid username or password.";
             logLogin($username, false);
+            
+            if ($rateCheck['remaining'] > 0) {
+                $error_msg .= " ({$rateCheck['remaining']} attempts remaining)";
+            }
         }
     }
 }

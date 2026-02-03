@@ -1,0 +1,28 @@
+parameters:
+    level: max
+    paths:
+        - includes
+        - .
+    excludePaths:
+        - vendor
+        - logs
+    
+    # PHP 8.5 support
+    phpVersion: 80500
+    
+    # Strict rules
+    checkMissingIterableValueType: true
+    checkGenericClassInNonGenericObjectType: true
+    checkMissingCallableSignature: true
+    checkUninitializedProperties: true
+    checkDynamicProperties: true
+    
+    # Report all errors
+    reportUnmatchedIgnoredErrors: true
+    treatPhpDocTypesAsCertain: false
+    
+    ignoreErrors:
+        # Allow superglobals
+        - '#Variable \$_(GET|POST|SESSION|SERVER|FILES|COOKIE|REQUEST) might not be defined#'
+        # Allow exit/die in error handlers
+        - '#Unreachable statement - code above always terminates#'

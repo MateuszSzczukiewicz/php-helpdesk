@@ -1,0 +1,48 @@
+{
+    "name": "mateusz-szczukiewicz/php-helpdesk",
+    "description": "Enterprise-grade IT Helpdesk Ticket System built with PHP 8.5+",
+    "type": "project",
+    "keywords": ["helpdesk", "tickets", "php85", "enum", "pipe-operator"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Mateusz Szczukiewicz",
+            "email": "mateusz.szczukiewicz@example.com"
+        }
+    ],
+    "require": {
+        "php": ">=8.5.0",
+        "ext-pdo": "*",
+        "ext-json": "*",
+        "ext-mbstring": "*"
+    },
+    "require-dev": {
+        "phpstan/phpstan": "^2.0",
+        "friendsofphp/php-cs-fixer": "^3.64",
+        "phpstan/phpstan-strict-rules": "^2.0"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true,
+        "allow-plugins": {
+            "php-http/discovery": true
+        }
+    },
+    "scripts": {
+        "test": "php -l $(find . -name '*.php' -not -path './vendor/*')",
+        "lint": "php-cs-fixer fix --dry-run --diff",
+        "fix": "php-cs-fixer fix",
+        "analyze": "phpstan analyse --memory-limit=1G",
+        "check": [
+            "@lint",
+            "@analyze"
+        ]
+    },
+    "scripts-descriptions": {
+        "test": "Test syntax of all PHP files",
+        "lint": "Check code style",
+        "fix": "Fix code style automatically",
+        "analyze": "Run static analysis",
+        "check": "Run full code quality check"
+    }
+}

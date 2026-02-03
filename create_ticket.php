@@ -38,7 +38,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!$titleValidation->isValid()) {
             $error_msg = $titleValidation->getErrorMessage();
         }
-        // Validate description
         else {
             $descValidation = validateTicketDescription($description);
             if (!$descValidation->isValid()) {

@@ -33,17 +33,22 @@ function ensureSession() {
 }
 
 function loginUser($user) {
-    ensureSession();
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
     
     session_regenerate_id(true);
     
     $_SESSION['user_id'] = $user['id'];
     $_SESSION['username'] = $user['username'];
     $_SESSION['role'] = $user['role'];
+    $_SESSION['last_activity'] = time();
 }
 
 function logoutUser() {
-    ensureSession();
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
     
     $_SESSION = [];
     

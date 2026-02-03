@@ -1,23 +1,21 @@
 <?php
-session_start();
 require 'db.php';
+require 'includes/auth.php';
+require 'includes/functions.php';
 require 'includes/csrf.php';
 require 'includes/logger.php';
+require 'includes/error_handler.php';
 
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    logSecurity("Unauthorized admin access attempt", ['user_id' => $_SESSION['user_id'] ?? 'none']);
-    die("Access Denied: You do not have permission to perform this action.");
-}
+$user = requireAdmin();
 
 if (!isset($_GET['id'])) {
-    die("Error: Ticket ID is missing.");
+    show404("Ticket");
 }
 
 $ticket_id = (int)$_GET['id'];
 $msg = "";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Validate CSRF token
     requireCSRFToken();
     
     $new_status = $_POST['status'];
@@ -31,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 logInfo("Ticket status updated", [
                     'ticket_id' => $ticket_id,
                     'new_status' => $new_status,
-                    'admin' => $_SESSION['username']
+                    'admin' => $user['username']
                 ]);
             }
         } catch (PDOException $e) {
@@ -52,7 +50,7 @@ $stmt->execute([$ticket_id]);
 $ticket = $stmt->fetch();
 
 if (!$ticket) {
-    die("Ticket not found.");
+    show404("Ticket");
 }
 ?>
 
@@ -71,7 +69,7 @@ if (!$ticket) {
         <div><strong>ADMIN PANEL</strong></div>
         <div>
             <a href="admin_panel.php" style="color: white; margin-right: 15px;">&larr; Back to List</a>
-            Logged in as: <strong><?php echo htmlspecialchars($_SESSION['username']); ?></strong>
+            Logged in as: <strong><?php echo htmlspecialchars($user['username']); ?></strong>
         </div>
     </nav>
 

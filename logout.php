@@ -1,7 +1,6 @@
 <?php
-session_start();
-session_unset();
-session_destroy();
+require 'includes/auth.php';
+require 'includes/functions.php';
 
-header("Location: login.php");
-exit();
+logoutUser();
+redirect('login.php');

@@ -1,9 +1,12 @@
 <?php
-session_start();
 require 'db.php';
+require 'includes/auth.php';
+require 'includes/functions.php';
 require 'includes/csrf.php';
 require 'includes/validation.php';
 require 'includes/logger.php';
+
+ensureSession();
 
 $error_msg = "";
 $success_msg = "";
@@ -52,8 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     try {
                         if ($stmt->execute([$username, $email, $password_hash])) {
                             logInfo("New user registered", ['username' => $username]);
-                            header("Location: login.php?registered=1");
-                            exit();
+                            redirect('login.php?registered=1');
                         }
                     } catch (PDOException $e) {
                         $error_msg = "An error occurred during registration.";

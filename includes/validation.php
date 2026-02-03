@@ -1,31 +1,9 @@
 <?php
-/**
- * Input Validation Functions
- * 
- * Provides validation for user inputs
- */
 
-/**
- * Validate email format
- * 
- * @param string $email The email to validate
- * @return bool True if valid, false otherwise
- */
 function validateEmail($email) {
     return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
 }
 
-/**
- * Validate password strength
- * 
- * Requirements:
- * - At least 8 characters long
- * - Contains at least one letter
- * - Contains at least one number
- * 
- * @param string $password The password to validate
- * @return array ['valid' => bool, 'message' => string]
- */
 function validatePassword($password) {
     $errors = [];
     
@@ -47,16 +25,6 @@ function validatePassword($password) {
     ];
 }
 
-/**
- * Validate username
- * 
- * Requirements:
- * - 3-20 characters long
- * - Only letters, numbers, and underscores
- * 
- * @param string $username The username to validate
- * @return array ['valid' => bool, 'message' => string]
- */
 function validateUsername($username) {
     if (strlen($username) < 3 || strlen($username) > 20) {
         return [
@@ -75,12 +43,6 @@ function validateUsername($username) {
     return ['valid' => true, 'message' => ''];
 }
 
-/**
- * Validate ticket title
- * 
- * @param string $title The title to validate
- * @return array ['valid' => bool, 'message' => string]
- */
 function validateTicketTitle($title) {
     $length = strlen(trim($title));
     
@@ -101,12 +63,6 @@ function validateTicketTitle($title) {
     return ['valid' => true, 'message' => ''];
 }
 
-/**
- * Validate ticket description
- * 
- * @param string $description The description to validate
- * @return array ['valid' => bool, 'message' => string]
- */
 function validateTicketDescription($description) {
     $length = strlen(trim($description));
     
@@ -127,12 +83,6 @@ function validateTicketDescription($description) {
     return ['valid' => true, 'message' => ''];
 }
 
-/**
- * Sanitize string input
- * 
- * @param string $input The input to sanitize
- * @return string The sanitized input
- */
 function sanitizeInput($input) {
     return htmlspecialchars(trim($input), ENT_QUOTES, 'UTF-8');
 }

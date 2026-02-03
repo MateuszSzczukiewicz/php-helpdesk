@@ -1,15 +1,9 @@
 <?php
-session_start();
 require 'db.php';
+require 'includes/auth.php';
+require 'includes/functions.php';
 
-if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
-    exit();
-}
-
-if ($_SESSION['role'] !== 'admin') {
-    die("Access Denied: You do not have permission to view this page.");
-}
+$user = requireAdmin();
 
 $sql = "SELECT t.*, c.name as category_name, u.username as author_name
         FROM tickets t 
@@ -19,22 +13,6 @@ $sql = "SELECT t.*, c.name as category_name, u.username as author_name
 
 $stmt = $conn->query($sql);
 $tickets = $stmt->fetchAll();
-
-function getStatusLabel($status)
-{
-    switch ($status) {
-        case 'new':
-            return '<span class="status-new">New</span>';
-        case 'in_progress':
-            return '<span class="status-in_progress">In Progress</span>';
-        case 'resolved':
-            return '<span class="status-resolved">Resolved</span>';
-        case 'cancelled':
-            return '<span style="color:gray">Cancelled</span>';
-        default:
-            return $status;
-    }
-}
 ?>
 
 <!DOCTYPE html>
@@ -52,7 +30,7 @@ function getStatusLabel($status)
     <nav style="background-color: #212529;">
         <div><strong>ADMIN PANEL</strong></div>
         <div>
-            Logged in as: <strong><?php echo htmlspecialchars($_SESSION['username']); ?></strong>
+            Logged in as: <strong><?php echo htmlspecialchars($user['username']); ?></strong>
             |
             <a href="index.php" style="color: #adb5bd;">User Dashboard</a>
             |
@@ -90,7 +68,7 @@ function getStatusLabel($status)
                             <td><?php echo htmlspecialchars($ticket['title']); ?></td>
                             <td><?php echo htmlspecialchars($ticket['category_name']); ?></td>
                             <td><?php echo getStatusLabel($ticket['status']); ?></td>
-                            <td><?php echo date("Y-m-d H:i", strtotime($ticket['created_at'])); ?></td>
+                            <td><?php echo formatDate($ticket['created_at']); ?></td>
                             <td>
                                 <a href="admin_ticket.php?id=<?php echo $ticket['id']; ?>" style="color: #007bff; text-decoration: none;">Manage</a>
                             </td>

@@ -1,14 +1,13 @@
 <?php
-session_start();
 require 'db.php';
+require 'includes/auth.php';
+require 'includes/functions.php';
 require 'includes/csrf.php';
 require 'includes/validation.php';
 require 'includes/logger.php';
+require 'includes/error_handler.php';
 
-if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
-    exit();
-}
+$user = requireAuth();
 
 $error_msg = "";
 
@@ -21,19 +20,15 @@ try {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Validate CSRF token
     requireCSRFToken();
     
     $title = trim($_POST['title']);
     $category_id = (int)$_POST['category_id'];
     $description = trim($_POST['description']);
-    $user_id = $_SESSION['user_id'];
 
-    // Validate inputs
     if (empty($title) || empty($description) || empty($category_id)) {
         $error_msg = "Please fill in all fields.";
     } else {
-        // Validate title
         $titleValidation = validateTicketTitle($title);
         if (!$titleValidation['valid']) {
             $error_msg = $titleValidation['message'];
@@ -50,14 +45,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt = $conn->prepare($sql);
 
                 try {
-                    if ($stmt->execute([$user_id, $category_id, $title, $description])) {
+                    if ($stmt->execute([$user['id'], $category_id, $title, $description])) {
                         logInfo("Ticket created", [
-                            'user_id' => $user_id,
+                            'user_id' => $user['id'],
                             'title' => $title,
                             'category_id' => $category_id
                         ]);
-                        header("Location: index.php");
-                        exit();
+                        redirect('index.php');
                     }
                 } catch (PDOException $e) {
                     $error_msg = "Database error. Could not create ticket.";
@@ -85,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div><strong>IT Helpdesk</strong></div>
         <div>
             <a href="index.php" style="color: white; margin-right: 15px;">Back to Dashboard</a>
-            Logged in as: <strong><?php echo htmlspecialchars($_SESSION['username']); ?></strong>
+            Logged in as: <strong><?php echo htmlspecialchars($user['username']); ?></strong>
         </div>
     </nav>
 

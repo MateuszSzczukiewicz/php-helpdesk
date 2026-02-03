@@ -1,8 +1,11 @@
 <?php
-session_start();
 require 'db.php';
+require 'includes/auth.php';
+require 'includes/functions.php';
 require 'includes/csrf.php';
 require 'includes/logger.php';
+
+ensureSession();
 
 $error_msg = "";
 $success_msg = "";
@@ -12,7 +15,6 @@ if (isset($_GET['registered']) && $_GET['registered'] == 1) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Validate CSRF token
     requireCSRFToken();
     
     $username = trim($_POST['username']);
@@ -27,16 +29,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = $stmt->fetch();
 
         if ($user && password_verify($password, $user['password'])) {
-            // Regenerate session ID to prevent session fixation
-            session_regenerate_id(true);
-            
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['username'] = $user['username'];
-            $_SESSION['role'] = $user['role'];
-
+            loginUser($user);
             logLogin($username, true);
-            header("Location: index.php");
-            exit();
+            redirect('index.php');
         } else {
             $error_msg = "Invalid username or password.";
             logLogin($username, false);

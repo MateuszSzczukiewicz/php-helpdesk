@@ -1,6 +1,8 @@
 <?php
 session_start();
 require 'db.php';
+require 'includes/csrf.php';
+require 'includes/logger.php';
 
 $error_msg = "";
 $success_msg = "";
@@ -10,26 +12,34 @@ if (isset($_GET['registered']) && $_GET['registered'] == 1) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Validate CSRF token
+    requireCSRFToken();
+    
     $username = trim($_POST['username']);
     $password = $_POST['password'];
 
     if (empty($username) || empty($password)) {
         $error_msg = "Please fill in all fields.";
+        logSecurity("Login attempt with empty fields");
     } else {
         $stmt = $conn->prepare("SELECT id, username, password, role FROM users WHERE username = ?");
         $stmt->execute([$username]);
         $user = $stmt->fetch();
 
         if ($user && password_verify($password, $user['password'])) {
-
+            // Regenerate session ID to prevent session fixation
+            session_regenerate_id(true);
+            
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['username'] = $user['username'];
             $_SESSION['role'] = $user['role'];
 
+            logLogin($username, true);
             header("Location: index.php");
             exit();
         } else {
             $error_msg = "Invalid username or password.";
+            logLogin($username, false);
         }
     }
 }
@@ -59,6 +69,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endif; ?>
 
         <form action="login.php" method="POST">
+            <?php csrfField(); ?>
+            
             <label for="username">Username:</label>
             <input type="text" name="username" id="username" required>
 

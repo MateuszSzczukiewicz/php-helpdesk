@@ -33,15 +33,15 @@ This application serves as a communication bridge between users (reporting issue
 * **Environment Configuration:** `.env` file for secure credential management
 
 ### PHP 8.5 Features Used
-* ✅ **Pipe Operator `|>`** - Functional programming style
-* ✅ **Enums** - Type-safe Status and Role management (PHP 8.1+)
-* ✅ **Readonly Classes** - Immutable Value Objects (PHP 8.2+)
-* ✅ **Match Expressions** - Modern control flow (PHP 8.0+)
-* ✅ **Strict Types** - `declare(strict_types=1)` in all files
-* ✅ **Named Arguments** - Improved code readability
-* ✅ **Union Types** - Flexible type hints
-* ✅ **Never Return Type** - Better type safety
-* ✅ **Arrow Functions** - Concise closures
+* **Pipe Operator `|>`** - Functional programming style
+* **Enums** - Type-safe Status and Role management (PHP 8.1+)
+* **Readonly Classes** - Immutable Value Objects (PHP 8.2+)
+* **Match Expressions** - Modern control flow (PHP 8.0+)
+* **Strict Types** - `declare(strict_types=1)` in all files
+* **Named Arguments** - Improved code readability
+* **Union Types** - Flexible type hints
+* **Never Return Type** - Better type safety
+* **Arrow Functions** - Concise closures
 
 ### Security Features (10/10)
 * **CSRF Protection** - Token-based protection on all forms
@@ -139,7 +139,7 @@ The system is built on a relational database consisting of three core tables:
 - Username: `testuser`
 - Password: `test123`
 
-⚠️ **Important:** Change these passwords in production!
+**Important:** Change these passwords in production!
 
 ## Project Structure
 
@@ -265,4 +265,4 @@ This project is open source and available for educational purposes.
 **Author:** Mateusz Szczukiewicz  
 **Repository:** https://github.com/MateuszSzczukiewicz/php-helpdesk  
 **PHP Version:** 8.5+  
-**Status:** Production Ready ✅
+**Status:** Production Ready

@@ -1,5 +1,8 @@
 <?php
-function loadEnv($path = __DIR__ . '/.env')
+
+declare(strict_types=1);
+
+function loadEnv(string $path = __DIR__ . '/.env'): void
 {
     if (!file_exists($path)) {
         throw new Exception(".env file not found at: $path");
@@ -25,7 +28,7 @@ function loadEnv($path = __DIR__ . '/.env')
     }
 }
 
-function env($key, $default = null)
+function env(string $key, mixed $default = null): mixed
 {
     return $_ENV[$key] ?? getenv($key) ?: $default;
 }

@@ -15,7 +15,7 @@ enum TicketStatus: string
             self::NEW => '<span class="status-new">New</span>',
             self::IN_PROGRESS => '<span class="status-in_progress">In Progress</span>',
             self::RESOLVED => '<span class="status-resolved">Resolved</span>',
-            self::CANCELLED => '<span style="color:gray">Cancelled</span>',
+            self::CANCELLED => '<span class="status-cancelled">Cancelled</span>',
         };
     }
 

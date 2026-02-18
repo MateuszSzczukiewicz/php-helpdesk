@@ -373,3 +373,252 @@ hr {
     border: 1px solid var(--gray-300);
   }
 }
+
+/* Layout utilities */
+.container--narrow { max-width: 400px; }
+.container--medium { max-width: 600px; }
+.container--wide   { max-width: 800px; }
+.container--full   { max-width: 1000px; }
+
+.container--centered {
+  margin-top: 50px;
+}
+
+/* Flexbox utilities */
+.flex { display: flex; }
+.flex--between { display: flex; justify-content: space-between; align-items: center; }
+.flex--center  { display: flex; align-items: center; gap: 15px; }
+.flex--gap     { display: flex; gap: 10px; }
+.flex--grow    { flex-grow: 1; }
+.flex--right   { display: flex; justify-content: flex-end; }
+
+/* Typography utilities */
+.text-center  { text-align: center; }
+.text-muted   { color: var(--gray-500); }
+.text-small   { font-size: 0.85em; }
+.text-bold    { font-weight: bold; }
+
+/* Spacing utilities */
+.mt-sm  { margin-top: 10px; }
+.mt-md  { margin-top: 20px; }
+.mt-lg  { margin-top: 30px; }
+.mt-xl  { margin-top: 40px; }
+.mb-md  { margin-bottom: 20px; }
+
+/* Navigation variants */
+nav.nav--admin {
+  background: linear-gradient(135deg, #212529 0%, #343a40 100%);
+}
+
+nav .nav__logout {
+  color: #ff6b6b;
+}
+
+nav .nav__muted {
+  color: #adb5bd;
+}
+
+/* Ticket detail */
+.ticket-header {
+  border-bottom: 1px solid var(--gray-300);
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+
+.ticket-id {
+  font-size: 0.9em;
+  color: var(--gray-500);
+}
+
+.ticket-description {
+  background: var(--gray-50);
+  padding: 15px;
+  border-radius: var(--radius);
+  border: 1px solid var(--gray-300);
+}
+
+.ticket-description p {
+  white-space: pre-wrap;
+  margin-top: 10px;
+}
+
+/* Admin status form */
+.status-form {
+  background-color: var(--gray-100);
+  padding: 20px;
+  border-radius: var(--radius-lg);
+  margin-bottom: 30px;
+  border: 1px solid var(--gray-200);
+}
+
+.status-form form {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin: 0;
+}
+
+.status-form select {
+  margin: 0;
+  width: auto;
+  flex-grow: 1;
+}
+
+.status-form label {
+  margin: 0;
+}
+
+/* Author meta */
+.author-email {
+  color: var(--gray-500);
+  font-size: 0.9em;
+}
+
+/* Description box */
+.description-box {
+  background: var(--white);
+  border: 1px solid var(--gray-300);
+  padding: 15px;
+  margin-top: 5px;
+  border-radius: var(--radius);
+}
+
+/* Table column widths */
+.col-label { width: 150px; }
+
+/* Buttons */
+.btn--danger    { background: linear-gradient(135deg, var(--danger) 0%, var(--danger-dark) 100%); }
+.btn--success   { background: linear-gradient(135deg, var(--success) 0%, var(--success-dark) 100%); }
+.btn--warning   { background: linear-gradient(135deg, var(--warning) 0%, var(--warning-dark) 100%); }
+.btn--secondary { background: linear-gradient(135deg, var(--gray-500) 0%, var(--gray-600) 100%); }
+.btn--info      { background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); }
+.btn--dark      { background: linear-gradient(135deg, #343a40 0%, #212529 100%); }
+.btn--full      { width: 100%; }
+
+/* Links in tables */
+.link--action { color: var(--primary); text-decoration: none; }
+.link--nav    { color: var(--white); margin-right: 15px; }
+
+/* Modal */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal__content {
+  background-color: var(--white);
+  margin: 10% auto;
+  padding: 30px;
+  border-radius: var(--radius-lg);
+  width: 90%;
+  max-width: 500px;
+  box-shadow: var(--shadow-xl);
+}
+
+.modal__close {
+  color: var(--gray-400);
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.modal__close:hover {
+  color: var(--gray-900);
+}
+
+.modal__actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* Category action buttons */
+.btn-edit {
+  background: linear-gradient(135deg, var(--warning) 0%, var(--warning-dark) 100%);
+  color: var(--white);
+  border: none;
+  padding: 5px 15px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-delete {
+  background: linear-gradient(135deg, var(--danger) 0%, var(--danger-dark) 100%);
+  color: var(--white);
+  border: none;
+  padding: 5px 15px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-delete:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+/* Error page */
+.error-container {
+  max-width: 600px;
+  margin: 100px auto;
+  padding: 40px;
+  text-align: center;
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.error-code {
+  font-size: 72px;
+  font-weight: bold;
+  color: var(--danger);
+  margin-bottom: 20px;
+}
+
+.error-message {
+  font-size: 20px;
+  color: var(--gray-700);
+  margin-bottom: 30px;
+}
+
+.error-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+/* Form hints */
+.form-hint {
+  color: var(--gray-500);
+  font-size: 0.85em;
+}
+
+/* User role badge */
+.role-badge {
+  font-size: 0.8em;
+  opacity: 0.8;
+}
+
+/* Greeting section */
+.greeting {
+  font-size: 1.2em;
+}
+
+/* Hidden form */
+.form--hidden {
+  display: none;
+}

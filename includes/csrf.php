@@ -31,7 +31,9 @@ function validateCSRFToken(string $token): bool
 function csrfField(): void
 {
     $token = generateCSRFToken();
-    echo '<input type="hidden" name="csrf_token" value="' . htmlspecialchars($token) . '">';
+    ?>
+    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($token) ?>">
+    <?php
 }
 
 function requireCSRFToken(): void

@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+
 require 'db.php';
 require 'includes/auth.php';
 require 'includes/csrf.php';
@@ -15,19 +16,19 @@ initSecureSession();
 
 $user = requireAuth();
 
-$error_msg = "";
+$error_msg = '';
 
 try {
     $stmt = $conn->query("SELECT * FROM categories ORDER BY name ASC");
     $categories = $stmt->fetchAll();
 } catch (PDOException $e) {
     logDatabaseError("SELECT categories", $e->getMessage());
-    die("Error fetching categories: " . $e->getMessage());
+    die("Error fetching categories.");
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     requireCSRFToken();
-    
+
     $title = trim($_POST['title']);
     $category_id = (int)$_POST['category_id'];
     $description = trim($_POST['description']);
@@ -38,15 +39,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $titleValidation = validateTicketTitle($title);
         if (!$titleValidation->isValid()) {
             $error_msg = $titleValidation->getErrorMessage();
-        }
-        else {
+        } else {
             $descValidation = validateTicketDescription($description);
             if (!$descValidation->isValid()) {
                 $error_msg = $descValidation->getErrorMessage();
             } else {
-                $sql = "INSERT INTO tickets (user_id, category_id, title, description, status) 
-                        VALUES (?, ?, ?, ?, 'new')";
-
+                $sql = "INSERT INTO tickets (user_id, category_id, title, description, status) VALUES (?, ?, ?, ?, 'new')";
                 $stmt = $conn->prepare($sql);
 
                 try {
@@ -67,65 +65,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>New Ticket - Helpdesk</title>
     <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-    <nav>
-        <div><strong>IT Helpdesk</strong></div>
-        <div>
-            <a href="index.php" style="color: white; margin-right: 15px;">Back to Dashboard</a>
-            Logged in as: <strong><?php echo htmlspecialchars($user['username']); ?></strong>
-        </div>
-    </nav>
-
-    <div class="container" style="max-width: 600px;">
-        <h2>Submit a Ticket</h2>
-        <p>Describe your issue clearly so our team can help you.</p>
-
-        <?php if (!empty($error_msg)): ?>
-            <div class="error"><?php echo $error_msg; ?></div>
-        <?php endif; ?>
-
-        <form action="create_ticket.php" method="POST">
-            <?php csrfField(); ?>
-
-            <label for="title">Subject / Title:</label>
-            <input type="text" name="title" id="title" placeholder="e.g., Internet is not working" required minlength="5" maxlength="100">
-            <small style="color: #666; font-size: 0.85em;">5-100 characters</small>
-
-            <label for="category_id">Category:</label>
-            <select name="category_id" id="category_id" required>
-                <option value="">-- Select Category --</option>
-                <?php foreach ($categories as $cat): ?>
-                    <option value="<?php echo $cat['id']; ?>">
-                        <?php echo htmlspecialchars($cat['name']); ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-
-            <label for="description">Description:</label>
-            <textarea name="description" id="description" rows="6" placeholder="Please provide details..." required minlength="10" maxlength="5000"></textarea>
-            <small style="color: #666; font-size: 0.85em;">10-5000 characters</small>
-
-            <div style="display: flex; gap: 10px; margin-top: 15px;">
-                <button type="submit" style="flex-grow: 1;">Submit Ticket</button>
-                <a href="index.php" style="text-decoration: none;">
-                    <button type="button" style="background-color: #6c757d;">Cancel</button>
-                </a>
-            </div>
-        </form>
+<nav>
+    <div><strong>IT Helpdesk</strong></div>
+    <div>
+        <a href="index.php" class="link--nav">Back to Dashboard</a>
+        Logged in as: <strong><?= htmlspecialchars($user['username']) ?></strong>
     </div>
+</nav>
+
+<div class="container container--medium">
+    <h2>Submit a Ticket</h2>
+    <p>Describe your issue clearly so our team can help you.</p>
+
+    <?php if (!empty($error_msg)): ?>
+        <div class="error"><?= $error_msg ?></div>
+    <?php endif; ?>
+
+    <form action="create_ticket.php" method="POST">
+        <?php csrfField(); ?>
+
+        <label for="title">Subject / Title:</label>
+        <input type="text" name="title" id="title" placeholder="e.g., Internet is not working" required minlength="5" maxlength="100">
+        <small class="form-hint">5-100 characters</small>
+
+        <label for="category_id">Category:</label>
+        <select name="category_id" id="category_id" required>
+            <option value="">-- Select Category --</option>
+            <?php foreach ($categories as $cat): ?>
+                <option value="<?= $cat['id'] ?>"><?= htmlspecialchars($cat['name']) ?></option>
+            <?php endforeach; ?>
+        </select>
+
+        <label for="description">Description:</label>
+        <textarea name="description" id="description" rows="6" placeholder="Please provide details..." required minlength="10" maxlength="5000"></textarea>
+        <small class="form-hint">10-5000 characters</small>
+
+        <div class="flex--gap mt-sm">
+            <button type="submit" class="flex--grow">Submit Ticket</button>
+            <a href="index.php"><button type="button" class="btn--secondary">Cancel</button></a>
+        </div>
+    </form>
+</div>
 
 </body>
-
 </html>

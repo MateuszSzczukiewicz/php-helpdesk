@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+
 require 'db.php';
 require 'includes/auth.php';
 require 'includes/csrf.php';
@@ -19,11 +20,12 @@ if (!isset($_GET['id'])) {
 }
 
 $ticket_id = (int)$_GET['id'];
-$msg = "";
+$success_msg = '';
+$error_msg = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     requireCSRFToken();
-    
+
     $new_status = $_POST['status'];
     $allowed_statuses = ['new', 'in_progress', 'resolved', 'cancelled'];
 
@@ -31,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $conn->prepare("UPDATE tickets SET status = ? WHERE id = ?");
         try {
             if ($stmt->execute([$new_status, $ticket_id])) {
-                $msg = "<div class='success'>Status updated successfully!</div>";
+                $success_msg = "Status updated successfully!";
                 logInfo("Ticket status updated", [
                     'ticket_id' => $ticket_id,
                     'new_status' => $new_status,
@@ -39,15 +41,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ]);
             }
         } catch (PDOException $e) {
-            $msg = "<div class='error'>Database error.</div>";
+            $error_msg = "Database error.";
             logDatabaseError("UPDATE ticket status", $e->getMessage());
         }
     }
 }
 
 $sql = "SELECT t.*, c.name as category_name, u.username as author_name, u.email as author_email
-        FROM tickets t 
-        LEFT JOIN categories c ON t.category_id = c.id 
+        FROM tickets t
+        LEFT JOIN categories c ON t.category_id = c.id
         LEFT JOIN users u ON t.user_id = u.id
         WHERE t.id = ?";
 
@@ -59,79 +61,78 @@ if (!$ticket) {
     show404("Ticket");
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-    <title>Manage Ticket #<?php echo $ticket['id']; ?></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Ticket #<?= $ticket['id'] ?></title>
     <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-    <nav style="background-color: #212529;">
-        <div><strong>ADMIN PANEL</strong></div>
-        <div>
-            <a href="admin_panel.php" style="color: white; margin-right: 15px;">&larr; Back to List</a>
-            Logged in as: <strong><?php echo htmlspecialchars($user['username']); ?></strong>
-        </div>
-    </nav>
+<nav class="nav--admin">
+    <div><strong>ADMIN PANEL</strong></div>
+    <div>
+        <a href="admin_panel.php" class="link--nav">&larr; Back to List</a>
+        Logged in as: <strong><?= htmlspecialchars($user['username']) ?></strong>
+    </div>
+</nav>
 
-    <div class="container" style="max-width: 800px;">
+<div class="container container--wide">
+    <h2>Manage Ticket #<?= $ticket['id'] ?></h2>
 
-        <h2>Manage Ticket #<?php echo $ticket['id']; ?></h2>
-        <?php echo $msg; ?>
+    <?php if (!empty($success_msg)): ?>
+        <div class="success"><?= $success_msg ?></div>
+    <?php endif; ?>
 
-        <div style="background-color: #e9ecef; padding: 20px; border-radius: 8px; margin-bottom: 30px; border: 1px solid #dee2e6;">
-            <form method="POST" style="display: flex; align-items: center; gap: 15px; margin: 0;">
-                <?php csrfField(); ?>
-                <label style="margin: 0; font-weight: bold;">Change Status:</label>
+    <?php if (!empty($error_msg)): ?>
+        <div class="error"><?= $error_msg ?></div>
+    <?php endif; ?>
 
-                <select name="status" style="margin: 0; width: auto; flex-grow: 1;">
-                    <option value="new" <?php if ($ticket['status'] == 'new') echo 'selected'; ?>>New</option>
-                    <option value="in_progress" <?php if ($ticket['status'] == 'in_progress') echo 'selected'; ?>>In Progress</option>
-                    <option value="resolved" <?php if ($ticket['status'] == 'resolved') echo 'selected'; ?>>Resolved</option>
-                    <option value="cancelled" <?php if ($ticket['status'] == 'cancelled') echo 'selected'; ?>>Cancelled</option>
-                </select>
-
-                <button type="submit" style="background-color: #28a745; margin: 0;">Update Status</button>
-            </form>
-        </div>
-
-        <h3>Ticket Details</h3>
-        <table>
-            <tr>
-                <th style="width: 150px;">Author:</th>
-                <td>
-                    <?php echo htmlspecialchars($ticket['author_name']); ?>
-                    <span style="color: gray; font-size: 0.9em;">(<?php echo htmlspecialchars($ticket['author_email']); ?>)</span>
-                </td>
-            </tr>
-            <tr>
-                <th>Category:</th>
-                <td><?php echo htmlspecialchars($ticket['category_name']); ?></td>
-            </tr>
-            <tr>
-                <th>Created:</th>
-                <td><?php echo $ticket['created_at']; ?></td>
-            </tr>
-            <tr>
-                <th>Subject:</th>
-                <td><?php echo htmlspecialchars($ticket['title']); ?></td>
-            </tr>
-        </table>
-
-        <div style="margin-top: 20px;">
-            <strong>Full Description:</strong>
-            <div style="background: #fff; border: 1px solid #ddd; padding: 15px; margin-top: 5px; border-radius: 4px;">
-                <?php echo nl2br(htmlspecialchars($ticket['description'])); ?>
-            </div>
-        </div>
-
+    <div class="status-form">
+        <form method="POST">
+            <?php csrfField(); ?>
+            <label>Change Status:</label>
+            <select name="status">
+                <?php foreach (['new' => 'New', 'in_progress' => 'In Progress', 'resolved' => 'Resolved', 'cancelled' => 'Cancelled'] as $value => $label): ?>
+                    <option value="<?= $value ?>" <?= $ticket['status'] === $value ? 'selected' : '' ?>><?= $label ?></option>
+                <?php endforeach; ?>
+            </select>
+            <button type="submit" class="btn--success">Update Status</button>
+        </form>
     </div>
 
-</body>
+    <h3>Ticket Details</h3>
+    <table>
+        <tr>
+            <th class="col-label">Author:</th>
+            <td>
+                <?= htmlspecialchars($ticket['author_name']) ?>
+                <span class="author-email">(<?= htmlspecialchars($ticket['author_email']) ?>)</span>
+            </td>
+        </tr>
+        <tr>
+            <th>Category:</th>
+            <td><?= htmlspecialchars($ticket['category_name']) ?></td>
+        </tr>
+        <tr>
+            <th>Created:</th>
+            <td><?= $ticket['created_at'] ?></td>
+        </tr>
+        <tr>
+            <th>Subject:</th>
+            <td><?= htmlspecialchars($ticket['title']) ?></td>
+        </tr>
+    </table>
 
+    <div class="mt-md">
+        <strong>Full Description:</strong>
+        <div class="description-box">
+            <?= nl2br(htmlspecialchars($ticket['description'])) ?>
+        </div>
+    </div>
+</div>
+
+</body>
 </html>
